@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NövbəAl — Onlayn Növbə və Rezervasiya Platforması</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            caspian: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c2d48',
+              950: '#071b2e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Custom scrollbar for horizontal pill lists */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Ticket perforated edge effect */
+    .ticket-divider {
+      position: relative;
+      border-top: 2px dashed #cbd5e1;
+    }
+    .ticket-divider::before,
+    .ticket-divider::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      width: 22px;
+      height: 22px;
+      background-color: #0f172a;
+      border-radius: 9999px;
+    }
+    .ticket-divider::before {
+      left: -27px;
+    }
+    .ticket-divider::after {
+      right: -27px;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.25); }
+    }
+    .animate-pulse-dot {
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-caspian-500 selection:text-white">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 bg-caspian-950/95 backdrop-blur-md text-white border-b border-white/10 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between py-3 gap-3">
+        
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchMode('customer')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-teal-400 to-emerald-400 flex items-center justify-center shadow-md shadow-sky-500/20">
+            <svg class="w-6 h-6 text-caspian-950" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-white">Növbə<span class="text-sky-400">Al</span></span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">AZ</span>
+            </div>
+            <!-- Live Sync Status Indicator -->
+            <div id="sync-status-badge" class="flex items-center gap-1.5 mt-0.5">
+              <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span id="sync-status-text" class="text-[11px] font-medium text-slate-300">Qoşulur...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual-View Mode Switcher -->
+        <div class="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-white/10 shadow-inner order-3 sm:order-2 w-full sm:w-auto justify-center">
+          <button id="btn-mode-customer" onclick="switchMode('customer')"
+            class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-sky-500 text-white shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Müştəri Rejimi</span>
+          </button>
+          <button id="btn-mode-owner" onclick="switchMode('owner')"
+        <!-- Right Controls: Share, My Tickets & Reset Demo -->
+        <div class="flex items-center gap-2 order-2 sm:order-3">
+          <button onclick="shareAppLink()" title="Linki paylaş"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border border-sky-400/30 text-xs font-semibold transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span class="hidden sm:inline">Paylaş</span>
+          </button>
+
+          <button id="btn-my-tickets" onclick="openMyTicketsModal()"
+            class="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white border border-white/10 transition">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            </svg>
+            <span class="hidden md:inline">Mənim Biletlərim</span>
+            <span id="my-ticket-badge" class="px-1.5 py-0.2 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950">0</span>
+          </button>
+
+          <button id="btn-reset-demo" onclick="resetDemoData()" title="Demo məlumatlarını ilkin vəziyyətə qaytar"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 border border-rose-500/30 text-xs font-medium transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span class="hidden sm:inline">Sıfırla</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION BANNER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1: CUSTOMER DISCOVERY & BOOKING (MÜŞTƏRİ REJİMİ)                 -->
+  <!-- ===================================================================== -->
+  <main id="view-customer" class="flex-1">
+    <!-- Hero Banner -->
+    <section class="bg-gradient-to-br from-caspian-950 via-caspian-900 to-slate-900 text-white pt-8 pb-12 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-xs font-medium mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot"></span>
+            <span>Gəncə • Bakı • Sumqayıt — Canlı növbə statusu</span>
+          </div>
+          <h1 class="font-display text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-3">
+            Növbədə vaxt itirməyin. <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">Onlayn biletinizi</span> saniyələr içində alın.
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base mb-6">
+            Bərbərxana, avtoyuma, stomatologiya və usta xidmətlərində hazırkı sıxlığı canlı izləyin, növbəyə qoşulun və ya uyğun saatı seçin.
+          </p>
+        </div>
+
+        <!-- Search & City Filter Bar -->
+        <div class="bg-white/10 backdrop-blur-md p-2.5 rounded-2xl border border-white/15 flex flex-col md:flex-row gap-2.5 shadow-xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input id="search-input" type="text" oninput="renderCustomerBusinesses()"
+              placeholder="Məkan adı, küçə və ya xidmət axtar (məs: saç kəsimi, avtoyuma, diş)..."
+              class="w-full pl-11 pr-4 py-3 rounded-xl bg-white text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400" />
+          </div>
+
+          <!-- City Filter Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="city-pills">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Ticket Quick Floating Alert (if customer has an active ticket) -->
+    <div id="active-ticket-banner" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-5 relative z-20">
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 shadow-lg shadow-emerald-900/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-emerald-400/30">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-md">Aktiv Növbə Biletiniz</span>
+              <span id="banner-ticket-code" class="font-mono font-bold text-sm">#GNC-104</span>
+            </div>
+            <p id="banner-ticket-summary" class="text-sm font-medium text-emerald-50 mt-0.5">
+              Cavadxan Gentleman's Club • Təxmini gözləmə: ~15 dəq
+            </p>
+          </div>
+        </div>
+        <button onclick="openMyTicketsModal()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs sm:text-sm transition shadow-sm">
+          Biletə Bax →
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Tabs & Business Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 w-full lg:w-auto" id="category-tabs">
+          <!-- Rendered dynamically -->
+        </div>
+        <div class="text-xs font-medium text-slate-500" id="results-counter">
+          10 məkan tapıldı
+        </div>
+      </div>
+
+      <!-- Business Cards Grid -->
+      <div id="business-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 2: BUSINESS OWNER DASHBOARD (SAHİBKAR PANELİ)                    -->
+  <!-- ===================================================================== -->
+  <main id="view-owner" class="hidden flex-1 bg-slate-100/80">
+    <!-- Owner Top Bar & Business Selector -->
+    <section class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-6">
+      <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-semibold text-sky-600 uppercase tracking-wider mb-1">
+            <span>Sahibkar İdarəetmə Paneli</span>
+            <span>•</span>
+            <span id="owner-city-label">Gəncə</span>
+          </div>
+          <h1 class="font-display text-2xl font-extrabold text-slate-900">Canlı Növbə və Gəlir Nəzarəti</h1>
+        </div>
+
+        <!-- Business Selector & Walk-In Trigger -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div class="relative">
+            <label for="owner-business-select" class="block text-[11px] font-semibold text-slate-500 mb-1">İdarə olunan obyekt:</label>
+            <select id="owner-business-select" onchange="handleOwnerBusinessChange(this.value)"
+              class="w-full sm:w-80 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="sm:pt-5">
+            <button onclick="openWalkInModal()"
+              class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-caspian-900 hover:bg-caspian-800 text-white text-sm font-semibold shadow-sm transition">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Yerində Müştəri Əlavə Et</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Owner KPI Cards -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- KPI 1: Active Waiting -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gözləyənlər</span>
+            <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span id="kpi-waiting-count" class="font-display text-3xl font-extrabold text-slate-900">0</span>
+            <span class="text-xs font-medium text-slate-500">nəfər gözləyir</span>
+          </div>
+        </div>
+
+        <!-- KPI 2: Est Wait Time -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Təxmini Gözləmə</span>
+            <span class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span id="kpi-wait-minutes" class="font-display text-3xl font-extrabold text-slate-900">0</span>
+            <span class="text-xs font-medium text-slate-500">dəqiqə</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: Completed Today -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tamamlananlar</span>
+            <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span id="kpi-completed-count" class="font-display text-3xl font-extrabold text-slate-900">0</span>
+            <span class="text-xs font-medium text-slate-500">xidmət bu gün</span>
+          </div>
+        </div>
+
+        <!-- KPI 4: Daily Earnings AZN -->
+        <div class="bg-gradient-to-br from-caspian-900 to-caspian-950 text-white rounded-2xl p-5 shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-sky-300 uppercase tracking-wider">Günlük Qazanc (AZN)</span>
+            <span class="w-9 h-9 rounded-xl bg-white/10 text-emerald-400 flex items-center justify-center font-bold text-lg">
+              ₼
+            </span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span id="kpi-earnings" class="font-display text-3xl font-extrabold text-white">0 ₼</span>
+            <span class="text-xs font-medium text-emerald-300">təsdiqlənmiş</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Queue Management Table Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="font-display font-bold text-lg text-slate-900" id="owner-table-title">Bugünkü Növbə və Rezervasiyalar</h2>
+            <p class="text-xs text-slate-500">Müştərini "Tamamlandı" etdikdə canlı növbə sayı yenilənir və məbləğ günlük gəlirə əlavə olunur.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="setOwnerFilter('all')" id="owner-filter-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white">Hamısı</button>
+            <button onclick="setOwnerFilter('waiting')" id="owner-filter-waiting" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Gözləyənlər</button>
+            <button onclick="setOwnerFilter('completed')" id="owner-filter-completed" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Tamamlananlar</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th class="py-3.5 px-5">Bilet №</th>
+                <th class="py-3.5 px-4">Müştəri</th>
+                <th class="py-3.5 px-4">Xidmət</th>
+                <th class="py-3.5 px-4">Növ / Vaxt</th>
+                <th class="py-3.5 px-4">Məbləğ</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-5 text-right">Əməliyyat</th>
+              </tr>
+            </thead>
+            <tbody id="owner-bookings-tbody" class="divide-y divide-slate-100 text-sm">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: INSTANT BOOKING & LIVE QUEUE JOIN                            -->
+  <!-- ===================================================================== -->
+  <div id="booking-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-fadeIn">
+      <!-- Modal Header -->
+      <div class="bg-caspian-950 text-white px-6 py-5 flex items-start justify-between gap-4">
+        <div>
+          <span id="modal-biz-category" class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 mb-1.5">
+            Bərbər & Salon
+          </span>
+          <h3 id="modal-biz-name" class="font-display text-xl font-extrabold text-white">Cavadxan Gentleman's Club</h3>
+          <p id="modal-biz-address" class="text-xs text-slate-300 mt-0.5 flex items-center gap-1">
+            Gəncə, Cavadxan küç. 42
+          </p>
+        </div>
+        <button onclick="closeBookingModal()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+        <!-- Live Status Strip -->
+        <div id="modal-queue-banner" class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span id="modal-queue-text" class="text-xs sm:text-sm font-semibold text-amber-900">Hazırda növbədə 2 nəfər var (~30 dəq)</span>
+          </div>
+          <span class="text-xs font-bold text-amber-700">Canlı</span>
+        </div>
+
+        <!-- Step 1: Select Service -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">1. Xidməti seçin</label>
+          <div id="modal-services-list" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Step 2: Queue Mode (Live Queue vs Scheduled Time Slot) -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">2. Növbə növünü seçin</label>
+          <div class="grid grid-cols-2 gap-2.5 mb-3">
+            <button type="button" id="btn-book-type-live" onclick="selectBookingType('live')"
+              class="p-3 rounded-2xl border-2 border-sky-500 bg-sky-50 text-left transition">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-bold text-sm text-caspian-950">Canlı Növbəyə Qoşul</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              </div>
+              <p class="text-[11px] text-slate-600">İndi sıraya qoşul və dərhal bilet al</p>
+            </button>
+
+            <button type="button" id="btn-book-type-slot" onclick="selectBookingType('slot')"
+              class="p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 text-left transition">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-bold text-sm text-slate-800">Saat Seç</span>
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p class="text-[11px] text-slate-500">Bu gün üçün konkret saat təyin et</p>
+            </button>
+          </div>
+
+          <!-- Time Slots Container (Visible only when 'slot' selected) -->
+          <div id="time-slots-wrapper" class="hidden bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+            <p class="text-xs font-semibold text-slate-600 mb-2">Bu gün üçün uyğun saatlar:</p>
+            <div id="time-slots-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Customer Info -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">3. Əlaqə məlumatlarınız</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">Ad və Soyad</label>
+              <input id="booking-customer-name" type="text" value="Elvin Məmmədov"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">Mobil Nömrə</label>
+              <input id="booking-customer-phone" type="tel" value="+994 50 412 88 90"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button onclick="confirmCustomerBooking()"
+            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-600 to-caspian-800 hover:from-sky-500 hover:to-caspian-700 text-white font-display font-bold text-base shadow-lg shadow-sky-600/25 transition flex items-center justify-center gap-2">
+            <span>Növbə Biletini Təsdiqlə</span>
+            <span id="modal-submit-price" class="px-2 py-0.5 rounded-lg bg-white/20 text-sm">15 ₼</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: DIGITAL QUEUE TICKET / MY TICKETS MODAL                      -->
+  <!-- ===================================================================== -->
+  <div id="ticket-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="max-w-md w-full my-auto">
+      <!-- Top Controls -->
+      <div class="flex items-center justify-between text-white mb-3 px-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-sky-300">Rəqəmsal Növbə Bileti</span>
+        <button onclick="closeTicketModal()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-semibold transition">
+          Bağla ✕
+        </button>
+      </div>
+
+      <!-- Tickets Stack Container -->
+      <div id="tickets-list-container" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: OWNER ADD WALK-IN CLIENT MODAL                               -->
+  <!-- ===================================================================== -->
+  <div id="walkin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-caspian-900 text-white px-6 py-4 flex items-center justify-between">
+        <div>
+          <h3 class="font-display font-bold text-lg">Yerində Müştəri Əlavə Et</h3>
+          <p id="walkin-biz-subtitle" class="text-xs text-slate-300">Obyektə yaxınlaşan müştərini sıraya salın</p>
+        </div>
+        <button onclick="closeWalkInModal()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Müştərinin Adı</label>
+          <input id="walkin-name" type="text" placeholder="Məs: Kamran Əliyev"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Telefon (istəyə bağlı)</label>
+          <input id="walkin-phone" type="tel" value="+994 55 300 11 22"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Xidmət Seçimi</label>
+          <select id="walkin-service-select"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="pt-2 flex gap-2.5">
+          <button onclick="closeWalkInModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50">
+            Ləğv et
+          </button>
+          <button onclick="submitWalkInClient()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md">
+            Növbəyə Əlavə Et
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="font-display font-bold text-slate-800 text-sm">NövbəAl</span>
+        <span>•</span>
+        <span>Azərbaycanın yerli xidmət və canlı növbə ekosistemi</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Gəncə • Bakı • Sumqayıt</span>
+        <span class="text-emerald-600 font-semibold">● Sistem Aktivdir</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT (STATE, SEED DATA, RENDERING, INTERACTIVITY)   -->
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT (FIREBASE REAL-TIME CLOUD SYNC & UI LOGIC)     -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      setDoc,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      getDocs,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Environment-provided Firebase Globals
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'novbeal-az-live';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let app = null;
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let isSeeding = false;
+
+    // Categories metadata
+    const CATEGORIES = [
+      { id: 'all', label: 'Hamısı', icon: '✨' },
+      { id: 'barber', label: 'Bərbər & Salon', icon: '✂️' },
+      { id: 'auto', label: 'Avtoyuma & Servis', icon: '🚗' },
+      { id: 'medical', label: 'Stomatologiya & Klinika', icon: '🦷' },
+      { id: 'repair', label: 'Təmir & Dərzi', icon: '🧵' }
+    ];
+
+    const CITIES = [
+      { id: 'all', label: 'Hamısı' },
+      { id: 'Gəncə', label: 'Gəncə' },
+      { id: 'Bakı', label: 'Bakı' },
+      { id: 'Sumqayıt', label: 'Sumqayıt' }
+    ];
+
+    const TIME_SLOTS = ['14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'];
+
+    // 10 Realistic Azerbaijani Businesses Seed Data
+    const INITIAL_BUSINESSES = [
+      {
+        id: 'biz-gnc-1',
+        prefix: 'GNC',
+        name: "Cavadxan Gentleman's Club",
+        city: 'Gəncə',
+        address: 'Cavadxan küç. 42, Mərkəz',
+        category: 'barber',
+        rating: 4.9,
+        reviewCount: 148,
+        openHours: '09:00 – 21:00',
+        services: [
+          { id: 's1', name: 'Klassik Saç Kəsimi & Yuma', duration: 30, price: 15 },
+          { id: 's2', name: 'Saqqal Modelləşdirmə (Buxar ilə)', duration: 20, price: 10 },
+          { id: 's3', name: 'VIP Kompleks (Saç + Saqqal + Üz baxımı)', duration: 50, price: 25 }
+        ]
+      },
+      {
+        id: 'biz-gnc-2',
+        prefix: 'GNC',
+        name: 'Gəncə Avto Spa & Detailing',
+        city: 'Gəncə',
+        address: 'Şah İsmayıl Xətai pr. 118',
+        category: 'auto',
+        rating: 4.8,
+        reviewCount: 96,
+        openHours: '08:00 – 22:00',
+        services: [
+          { id: 's1', name: 'Sedan Tam Yuma (Köpük + Salon)', duration: 35, price: 15 },
+          { id: 's2', name: 'SUV / Krossover Tam Yuma', duration: 45, price: 20 },
+          { id: 's3', name: 'Mühərrik Yuma və Keramika Qoruma', duration: 60, price: 40 }
+        ]
+      },
+      {
+        id: 'biz-gnc-3',
+        prefix: 'GNC',
+        name: 'Nizami Dental Klinikası',
+        city: 'Gəncə',
+        address: 'Atatürk pr. 256, Gəncə',
+        category: 'medical',
+        rating: 4.9,
+        reviewCount: 210,
+        openHours: '09:00 – 19:00',
+        services: [
+          { id: 's1', name: 'İlkin Müayinə və Rəqəmsal Diaqnostika', duration: 20, price: 20 },
+          { id: 's2', name: 'Ultrasəs ilə Diş Daşlarının Təmizlənməsi', duration: 40, price: 45 },
+          { id: 's3', name: 'Estetik Plomb Bərpası', duration: 45, price: 60 }
+        ]
+      },
+      {
+        id: 'biz-gnc-4',
+        prefix: 'GNC',
+        name: 'Usta Rəşad Saat və Ayaqqabı Təmiri',
+        city: 'Gəncə',
+        address: 'H.Əliyev pr., Gəncə Mall yanı',
+        category: 'repair',
+        rating: 4.7,
+        reviewCount: 64,
+        openHours: '10:00 – 19:30',
+        services: [
+          { id: 's1', name: 'Saat Batareyasının Dəyişdirilməsi (İsveçrə)', duration: 10, price: 8 },
+          { id: 's2', name: 'Ayaqqabı Altlığı və Daban Təmiri', duration: 25, price: 12 },
+          { id: 's3', name: 'Dəri Çanta və Kəmər Bərpası', duration: 30, price: 15 }
+        ]
+      },
+      {
+        id: 'biz-bak-1',
+        prefix: 'BAK',
+        name: 'İçərişəhər Fade & Grooming',
+        city: 'Bakı',
+        address: 'İstiqlaliyyət küç. 19, Səbail',
+        category: 'barber',
+        rating: 4.9,
+        reviewCount: 312,
+        openHours: '10:00 – 22:00',
+        services: [
+          { id: 's1', name: 'Modern Skin Fade & Styling', duration: 40, price: 25 },
+          { id: 's2', name: 'Kral Təraşı & İsti Dəsmal', duration: 25, price: 15 },
+          { id: 's3', name: 'Saç + Saqqal + Qara Maska', duration: 60, price: 35 }
+        ]
+      },
+      {
+        id: 'biz-bak-2',
+        prefix: 'BAK',
+        name: 'Caspian Auto Service & Wash',
+        city: 'Bakı',
+        address: 'Babək pr. 64, Xətai r-nu',
+        category: 'auto',
+        rating: 4.7,
+        reviewCount: 185,
+        openHours: '24 Saat Açıq',
+        services: [
+          { id: 's1', name: 'Ekspress Kontaktsız Yuma', duration: 25, price: 18 },
+          { id: 's2', name: 'Yağ və Filtr Dəyişimi (Diaqnostika daxil)', duration: 40, price: 35 },
+          { id: 's3', name: 'Kompüter Diaqnostikası', duration: 30, price: 25 }
+        ]
+      },
+      {
+        id: 'biz-bak-3',
+        prefix: 'BAK',
+        name: 'Bakı MedPlus Stomatologiya',
+        city: 'Bakı',
+        address: 'Təbriz küç. 55, Nərimanov r-nu',
+        category: 'medical',
+        rating: 4.8,
+        reviewCount: 142,
+        openHours: '09:00 – 20:00',
+        services: [
+          { id: 's1', name: 'Stomatoloji Konsultasiya', duration: 20, price: 25 },
+          { id: 's2', name: 'Air-Flow Ağartma və Təmizlik', duration: 45, price: 65 },
+          { id: 's3', name: 'Təcili Diş Ağrısı Müdaxiləsi', duration: 30, price: 40 }
+        ]
+      },
+      {
+        id: 'biz-sum-1',
+        prefix: 'SMQ',
+        name: 'Xəzər Modern Dərzi və Quru Təmizləmə',
+        city: 'Sumqayıt',
+        address: 'Sülh küç. 31, Mərkəz',
+        category: 'repair',
+        rating: 4.9,
+        reviewCount: 89,
+        openHours: '09:00 – 19:00',
+        services: [
+          { id: 's1', name: 'Şalvar / Don Uzunluğunun Qısaldılması', duration: 20, price: 8 },
+          { id: 's2', name: 'Kostyum və Pencək Daraldılması', duration: 40, price: 22 },
+          { id: 's3', name: 'Zəncirbənd (Zamok) Dəyişdirilməsi', duration: 15, price: 7 }
+        ]
+      },
+      {
+        id: 'biz-sum-2',
+        prefix: 'SMQ',
+        name: 'Sumqayıt Avto Yuma 24/7',
+        city: 'Sumqayıt',
+        address: 'Koroğlu pr. 12, 13-cü mkr',
+        category: 'auto',
+        rating: 4.6,
+        reviewCount: 112,
+        openHours: '24 Saat Açıq',
+        services: [
+          { id: 's1', name: 'Standart Yuma (Çöl + İç)', duration: 30, price: 12 },
+          { id: 's2', name: 'Salonun Kimyəvi Təmizlənməsi (Oturacaqlar)', duration: 90, price: 55 },
+          { id: 's3', name: 'Fara Cilalanması', duration: 30, price: 20 }
+        ]
+      },
+      {
+        id: 'biz-sum-3',
+        prefix: 'SMQ',
+        name: 'Abşeron Barbershop',
+        city: 'Sumqayıt',
+        address: '9-cu mikrorayon, Üzeyir Hacıbəyov küç.',
+        category: 'barber',
+        rating: 4.8,
+        reviewCount: 77,
+        openHours: '09:30 – 21:00',
+        services: [
+          { id: 's1', name: 'Saç Kəsimi', duration: 30, price: 12 },
+          { id: 's2', name: 'Saç + Saqqal Kompleks', duration: 45, price: 18 },
+          { id: 's3', name: 'Uşaq Saç Kəsimi', duration: 25, price: 10 }
+        ]
+      }
+    ];
+
+    // Pre-loaded Realistic Bookings
+    const INITIAL_BOOKINGS = [
+      { id: 'seed-bk-1', ticketCode: '#GNC-101', businessId: 'biz-gnc-1', customerName: 'Tural Həsənov', phone: '+994 50 321 44 10', serviceName: 'Klassik Saç Kəsimi & Yuma', duration: 30, price: 15, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700000100000, createdAt: '10:15' },
+      { id: 'seed-bk-2', ticketCode: '#GNC-102', businessId: 'biz-gnc-1', customerName: 'Orxan Quliyev', phone: '+994 55 612 90 11', serviceName: 'VIP Kompleks (Saç + Saqqal + Üz baxımı)', duration: 50, price: 25, type: 'slot', timeSlot: '11:30', status: 'completed', createdByUid: 'seed', createdAtMs: 1700000200000, createdAt: '11:30' },
+      { id: 'seed-bk-3', ticketCode: '#GNC-103', businessId: 'biz-gnc-1', customerName: 'Rəşad Əliyev', phone: '+994 70 214 55 88', serviceName: 'Saqqal Modelləşdirmə (Buxar ilə)', duration: 20, price: 10, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700000300000, createdAt: '12:40' },
+      { id: 'seed-bk-4', ticketCode: '#GNC-104', businessId: 'biz-gnc-1', customerName: 'Fərid Kərimov', phone: '+994 50 788 12 34', serviceName: 'Klassik Saç Kəsimi & Yuma', duration: 30, price: 15, type: 'live', timeSlot: null, status: 'waiting', createdByUid: 'seed', createdAtMs: 1700000400000, createdAt: '13:50' },
+      { id: 'seed-bk-5', ticketCode: '#GNC-105', businessId: 'biz-gnc-1', customerName: 'Nurlan İsmayılov', phone: '+994 51 409 77 20', serviceName: 'Saqqal Modelləşdirmə (Buxar ilə)', duration: 20, price: 10, type: 'slot', timeSlot: '15:00', status: 'waiting', createdByUid: 'seed', createdAtMs: 1700000500000, createdAt: '14:05' },
+
+      { id: 'seed-bk-6', ticketCode: '#GNC-201', businessId: 'biz-gnc-2', customerName: 'Samir Babayev', phone: '+994 50 222 10 99', serviceName: 'SUV / Krossover Tam Yuma', duration: 45, price: 20, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700000600000, createdAt: '11:00' },
+      { id: 'seed-bk-7', ticketCode: '#GNC-202', businessId: 'biz-gnc-2', customerName: 'Anar Vəliyev', phone: '+994 55 890 33 44', serviceName: 'Sedan Tam Yuma (Köpük + Salon)', duration: 35, price: 15, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700000700000, createdAt: '12:15' },
+      { id: 'seed-bk-8', ticketCode: '#GNC-203', businessId: 'biz-gnc-2', customerName: 'Cavid Məmmədli', phone: '+994 77 511 02 03', serviceName: 'Sedan Tam Yuma (Köpük + Salon)', duration: 35, price: 15, type: 'live', timeSlot: null, status: 'waiting', createdByUid: 'seed', createdAtMs: 1700000800000, createdAt: '14:10' },
+
+      { id: 'seed-bk-9', ticketCode: '#GNC-301', businessId: 'biz-gnc-3', customerName: 'Aynur Rzayeva', phone: '+994 50 601 23 45', serviceName: 'Ultrasəs ilə Diş Daşlarının Təmizlənməsi', duration: 40, price: 45, type: 'slot', timeSlot: '11:00', status: 'completed', createdByUid: 'seed', createdAtMs: 1700000900000, createdAt: '11:00' },
+      { id: 'seed-bk-10', ticketCode: '#GNC-302', businessId: 'biz-gnc-3', customerName: 'Günay Əhmədova', phone: '+994 55 432 19 87', serviceName: 'İlkin Müayinə və Rəqəmsal Diaqnostika', duration: 20, price: 20, type: 'slot', timeSlot: '13:00', status: 'completed', createdByUid: 'seed', createdAtMs: 1700001000000, createdAt: '13:00' },
+
+      { id: 'seed-bk-11', ticketCode: '#BAK-401', businessId: 'biz-bak-1', customerName: 'Murad Sultanov', phone: '+994 50 999 81 12', serviceName: 'Modern Skin Fade & Styling', duration: 40, price: 25, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700001100000, createdAt: '12:00' },
+      { id: 'seed-bk-12', ticketCode: '#BAK-402', businessId: 'biz-bak-1', customerName: 'Kənan Nəsirov', phone: '+994 51 312 45 67', serviceName: 'Saç + Saqqal + Qara Maska', duration: 60, price: 35, type: 'slot', timeSlot: '13:00', status: 'completed', createdByUid: 'seed', createdAtMs: 1700001200000, createdAt: '13:00' },
+      { id: 'seed-bk-13', ticketCode: '#BAK-403', businessId: 'biz-bak-1', customerName: 'Emin Tağıyev', phone: '+994 50 444 18 90', serviceName: 'Modern Skin Fade & Styling', duration: 40, price: 25, type: 'live', timeSlot: null, status: 'waiting', createdByUid: 'seed', createdAtMs: 1700001300000, createdAt: '13:45' },
+      { id: 'seed-bk-14', ticketCode: '#BAK-404', businessId: 'biz-bak-1', customerName: 'Zaur Abbasov', phone: '+994 70 811 22 33', serviceName: 'Kral Təraşı & İsti Dəsmal', duration: 25, price: 15, type: 'live', timeSlot: null, status: 'waiting', createdByUid: 'seed', createdAtMs: 1700001400000, createdAt: '14:00' },
+      { id: 'seed-bk-15', ticketCode: '#BAK-405', businessId: 'biz-bak-1', customerName: 'Rauf Cəfərov', phone: '+994 55 700 65 43', serviceName: 'Modern Skin Fade & Styling', duration: 40, price: 25, type: 'slot', timeSlot: '15:30', status: 'waiting', createdByUid: 'seed', createdAtMs: 1700001500000, createdAt: '14:12' },
+
+      { id: 'seed-bk-16', ticketCode: '#SMQ-501', businessId: 'biz-sum-1', customerName: 'Ləman Qasımova', phone: '+994 50 388 91 02', serviceName: 'Şalvar / Don Uzunluğunun Qısaldılması', duration: 20, price: 8, type: 'live', timeSlot: null, status: 'completed', createdByUid: 'seed', createdAtMs: 1700001600000, createdAt: '12:30' },
+      { id: 'seed-bk-17', ticketCode: '#SMQ-502', businessId: 'biz-sum-1', customerName: 'Vüsal Məhərrəmov', phone: '+994 55 204 76 54', serviceName: 'Kostyum və Pencək Daraldılması', duration: 40, price: 22, type: 'live', timeSlot: null, status: 'waiting', createdByUid: 'seed', createdAtMs: 1700001700000, createdAt: '14:08' }
+    ];
+
+    // Reactive In-Memory State (Synced with Firestore)
+    const state = {
+      mode: 'customer',
+      selectedCity: 'all',
+      selectedCategory: 'all',
+      ownerSelectedBusinessId: 'biz-gnc-1',
+      ownerStatusFilter: 'all',
+      businesses: [],
+      bookings: [],
+      isTicketModalOpen: false,
+      loadedBusinesses: false,
+      loadedBookings: false
+    };
+
+    const activeBookingModal = {
+      businessId: null,
+      selectedServiceId: null,
+      bookingType: 'live',
+      selectedTimeSlot: '15:00'
+    };
+
+    // Strict Firestore Collection References (Rule 1: /artifacts/{appId}/public/data/{collection})
+    function getBusinessesCol() {
+      return collection(db, 'artifacts', appId, 'public', 'data', 'businesses');
+    }
+
+    function getBookingsCol() {
+      return collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
+    }
+
+    function setSyncStatus(status, label) {
+      const dot = document.getElementById('sync-status-dot');
+      const text = document.getElementById('sync-status-text');
+      if (!dot || !text) return;
+      text.textContent = label;
+      if (status === 'live') {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot';
+        text.className = 'text-[11px] font-semibold text-emerald-300';
+      } else if (status === 'error') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        text.className = 'text-[11px] font-semibold text-rose-300';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        text.className = 'text-[11px] font-medium text-amber-200';
+      }
+    }
+
+    // Initialize Firebase Auth & Real-Time Firestore Listeners
+    async function initApp() {
+      renderCityPills();
+      renderCategoryTabs();
+
+      // Show initial loading state in grid
+      document.getElementById('business-grid').innerHTML = `
+        <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-slate-200">
+          <div class="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p class="text-sm font-semibold text-slate-600">Canlı növbə məlumatları yüklənir...</p>
+        </div>
+      `;
+
+      if (!firebaseConfig) {
+        // Fallback for local preview if Firebase config is absent
+        setSyncStatus('error', 'Lokal Demo Rejimi');
+        state.businesses = JSON.parse(JSON.stringify(INITIAL_BUSINESSES));
+        state.bookings = JSON.parse(JSON.stringify(INITIAL_BOOKINGS));
+        populateOwnerBusinessSelector();
+        refreshAllUI();
+        return;
+      }
+
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // RULE 3: Authenticate FIRST (Custom token priority, fallback to anonymous)
+        setSyncStatus('connecting', 'Bağlanır...');
+        let userCred;
+        if (initialAuthToken) {
+          userCred = await signInWithCustomToken(auth, initialAuthToken);
+        } else {
+          userCred = await signInAnonymously(auth);
+        }
+        currentUser = userCred.user;
+
+        if (!currentUser) {
+          throw new Error('Authentication failed');
+        }
+
+        // Seed default businesses & bookings if Firestore is empty
+        await seedInitialDataIfEmpty();
+
+        // Start Real-Time Listeners (Rule 2: Simple collection queries only, sort/filter in JS)
+        subscribeToRealtimeData();
+      } catch (err) {
+        console.error('Firebase init error:', err);
+        setSyncStatus('error', 'Bağlantı xətası');
+        showToast('Bulud bağlantısında xəta baş verdi. Yenidən cəhd edin.', 'info');
+      }
+    }
+
+    async function seedInitialDataIfEmpty() {
+      if (!currentUser || isSeeding) return;
+      const bizSnap = await getDocs(getBusinessesCol());
+      if (bizSnap.empty) {
+        isSeeding = true;
+        try {
+          await writeSeedDataToFirestore();
+        } finally {
+          isSeeding = false;
+        }
+      }
+    }
+
+    async function writeSeedDataToFirestore() {
+      if (!currentUser) return;
+      const bizPromises = INITIAL_BUSINESSES.map((biz, idx) =>
+        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'businesses', biz.id), {
+          ...biz,
+          orderIndex: idx
+        })
+      );
+      const bkPromises = INITIAL_BOOKINGS.map(bk =>
+        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bk.id), bk)
+      );
+      await Promise.all([...bizPromises, ...bkPromises]);
+    }
+
+    function subscribeToRealtimeData() {
+      if (!currentUser) return;
+
+      // Listener 1: Businesses
+      onSnapshot(
+        getBusinessesCol(),
+        (snapshot) => {
+          const items = [];
+          snapshot.forEach(docSnap => {
+            items.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          // Sort consistently by orderIndex
+          items.sort((a, b) => (a.orderIndex ?? 99) - (b.orderIndex ?? 99));
+          state.businesses = items;
+          state.loadedBusinesses = true;
+
+          // Ensure selected business exists
+          if (items.length > 0 && !items.some(b => b.id === state.ownerSelectedBusinessId)) {
+            state.ownerSelectedBusinessId = items[0].id;
+          }
+
+          populateOwnerBusinessSelector();
+          if (state.loadedBookings) {
+            setSyncStatus('live', 'Canlı Sinxronizasiya');
+          }
+          refreshAllUI();
+        },
+        (error) => {
+          console.error('Businesses onSnapshot error:', error);
+          setSyncStatus('error', 'Sinxronizasiya xətası');
+        }
+      );
+
+      // Listener 2: Bookings (Real-time Queue Sync across all connected users)
+      onSnapshot(
+        getBookingsCol(),
+        (snapshot) => {
+          const items = [];
+          snapshot.forEach(docSnap => {
+            items.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          // Sort chronologically by createdAtMs
+          items.sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
+          state.bookings = items;
+          state.loadedBookings = true;
+
+          if (state.loadedBusinesses) {
+            setSyncStatus('live', 'Canlı Sinxronizasiya');
+          }
+          refreshAllUI();
+
+          // If user has their ticket modal open, live-update their queue position immediately
+          if (state.isTicketModalOpen) {
+            renderTicketModalContents();
+          }
+        },
+        (error) => {
+          console.error('Bookings onSnapshot error:', error);
+          setSyncStatus('error', 'Sinxronizasiya xətası');
+        }
+      );
+    }
+
+    // Reset Demo Data in Firestore
+    async function resetDemoData() {
+      if (!currentUser || !db) return;
+      const btn = document.getElementById('btn-reset-demo');
+      if (btn) btn.disabled = true;
+      showToast('Demo məlumatları yenilənir...', 'info');
+
+      try {
+        const [bizSnap, bkSnap] = await Promise.all([
+          getDocs(getBusinessesCol()),
+          getDocs(getBookingsCol())
+        ]);
+
+        const deletePromises = [];
+        bizSnap.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+        bkSnap.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+        await Promise.all(deletePromises);
+
+        await writeSeedDataToFirestore();
+        showToast('Bütün məlumatlar ilkin demo vəziyyətinə qaytarıldı!', 'success');
+      } catch (err) {
+        console.error('Reset error:', err);
+        showToast('Sıfırlama zamanı xəta baş verdi.', 'info');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // Share Link (Web Share API + iFrame-safe execCommand copy fallback)
+    async function shareAppLink() {
+      const shareUrl = window.location.href;
+      const shareData = {
+        title: 'NövbəAl — Canlı Növbə və Rezervasiya',
+        text: 'Növbədə vaxt itirmə! Gəncə, Bakı və Sumqayıtda canlı növbə götür:',
+        url: shareUrl
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          showToast('Link uğurla paylaşıldı!', 'success');
+          return;
+        } catch (err) {
+          // If user cancelled or iframe blocked navigator.share, fall back to copy
+        }
+      }
+
+      try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = shareUrl;
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('Saytın linki kopyalandı! İstədiyiniz adama göndərə bilərsiniz.', 'success');
+      } catch (e) {
+        showToast('Linki brauzerin ünvan sətrindən kopyalaya bilərsiniz.', 'info');
+      }
+    }
+
+    // Master UI Refresh
+    function refreshAllUI() {
+      renderCustomerBusinesses();
+      renderOwnerDashboard();
+      updateMyTicketsUI();
+    }
+
+    // Dual-View Mode Switcher
+    function switchMode(newMode) {
+      state.mode = newMode;
+      const customerView = document.getElementById('view-customer');
+      const ownerView = document.getElementById('view-owner');
+      const btnCust = document.getElementById('btn-mode-customer');
+      const btnOwner = document.getElementById('btn-mode-owner');
+
+      if (newMode === 'customer') {
+        customerView.classList.remove('hidden');
+        ownerView.classList.add('hidden');
+        btnCust.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-sky-500 text-white shadow-md';
+        btnOwner.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white';
+      } else {
+        customerView.classList.add('hidden');
+        ownerView.classList.remove('hidden');
+        btnOwner.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-emerald-500 text-caspian-950 shadow-md';
+        btnCust.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white';
+      }
+      refreshAllUI();
+    }
+
+    // Compute Live Queue Stats
+    function getBusinessQueueStats(businessId) {
+      const waitingList = state.bookings.filter(b => b.businessId === businessId && b.status === 'waiting');
+      const completedList = state.bookings.filter(b => b.businessId === businessId && b.status === 'completed');
+      const waitingCount = waitingList.length;
+      const totalWaitMinutes = waitingList.reduce((sum, item) => sum + (item.duration || 25), 0);
+      const dailyEarnings = completedList.reduce((sum, item) => sum + (item.price || 0), 0);
+
+      return {
+        waitingCount,
+        totalWaitMinutes,
+        completedCount: completedList.length,
+        dailyEarnings,
+        waitingList,
+        completedList
+      };
+    }
+
+    // Helper: Clean Azerbaijani phone for WhatsApp wa.me links
+    function formatPhoneForWhatsApp(phone) {
+      let digits = (phone || '').replace(/\D/g, '');
+      if (digits.startsWith('0') && digits.length === 10) {
+        digits = '994' + digits.slice(1);
+      }
+      return digits;
+    }
+
+    // Render City Pills
+    function renderCityPills() {
+      const container = document.getElementById('city-pills');
+      container.innerHTML = CITIES.map(city => {
+        const isActive = state.selectedCity === city.id;
+        return `
+          <button onclick="selectCity('${city.id}')"
+            class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
+              isActive
+                ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30'
+                : 'bg-white/10 text-slate-200 hover:bg-white/20'
+            }">
+            ${city.label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCity(cityId) {
+      state.selectedCity = cityId;
+      renderCityPills();
+      renderCustomerBusinesses();
+    }
+
+    // Render Category Tabs
+    function renderCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const isActive = state.selectedCategory === cat.id;
+        return `
+          <button onclick="selectCategory('${cat.id}')"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap border transition ${
+              isActive
+                ? 'bg-caspian-900 text-white border-caspian-900 shadow-sm'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+            }">
+            <span>${cat.icon}</span>
+            <span>${cat.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCategory(catId) {
+      state.selectedCategory = catId;
+      renderCategoryTabs();
+      renderCustomerBusinesses();
+    }
+
+    // Render Business Cards in Customer Discovery
+    function renderCustomerBusinesses() {
+      const grid = document.getElementById('business-grid');
+      if (!state.loadedBusinesses && firebaseConfig) return;
+
+      const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+
+      const filtered = state.businesses.filter(biz => {
+        const matchesCity = state.selectedCity === 'all' || biz.city === state.selectedCity;
+        const matchesCat = state.selectedCategory === 'all' || biz.category === state.selectedCategory;
+        const matchesQuery = !query ||
+          biz.name.toLowerCase().includes(query) ||
+          biz.address.toLowerCase().includes(query) ||
+          biz.city.toLowerCase().includes(query) ||
+          biz.services.some(s => s.name.toLowerCase().includes(query));
+        return matchesCity && matchesCat && matchesQuery;
+      });
+
+      document.getElementById('results-counter').textContent = `${filtered.length} məkan tapıldı`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-slate-200">
+            <div class="text-4xl mb-3">🔍</div>
+            <h3 class="font-display font-bold text-lg text-slate-900 mb-1">Uyğun məkan tapılmadı</h3>
+            <p class="text-sm text-slate-500 mb-4">Axtarış sözünü və ya şəhər/kateqoriya filtrini dəyişərək yenidən yoxlayın.</p>
+            <button onclick="clearFilters()" class="px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold">Filtrləri təmizlə</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(biz => {
+        const stats = getBusinessQueueStats(biz.id);
+        const minPrice = Math.min(...biz.services.map(s => s.price));
+        const catObj = CATEGORIES.find(c => c.id === biz.category);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(biz.name + ' ' + biz.address + ' ' + biz.city + ' Azerbaijan')}`;
+
+        // Dynamic Queue Status Badge
+        let queueBadgeHTML = '';
+        if (stats.waitingCount === 0) {
+          queueBadgeHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-dot"></span>
+              Boşdur (0 nəfər)
+            </span>
+          `;
+        } else if (stats.waitingCount >= 3) {
+          queueBadgeHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              Növbədə ${stats.waitingCount} nəfər (~${stats.totalWaitMinutes} dəq)
+            </span>
+          `;
+        } else {
+          queueBadgeHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              Növbədə ${stats.waitingCount} nəfər (~${stats.totalWaitMinutes} dəq)
+            </span>
+          `;
+        }
+
+        const servicesPreviewHTML = biz.services.slice(0, 2).map(s => `
+          <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-none">
+            <span class="text-slate-600 truncate pr-2">${s.name}</span>
+            <span class="font-bold text-slate-900 shrink-0">${s.price} ₼</span>
+          </div>
+        `).join('');
+
+        return `
+          <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+            <div class="p-6">
+              <!-- Top Row: City & Rating -->
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold">
+                    📍 ${biz.city}
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded-lg bg-caspian-50 text-caspian-700 text-[11px] font-semibold">
+                    ${catObj ? catObj.icon + ' ' + catObj.label : ''}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1 text-xs font-bold text-slate-800 bg-amber-50/70 px-2 py-0.5 rounded-lg border border-amber-200/60">
+                  <span class="text-amber-500">★</span>
+                  <span>${biz.rating}</span>
+                  <span class="text-slate-400 font-normal">(${biz.reviewCount})</span>
+                </div>
+              </div>
+
+              <!-- Title, Address & Google Maps Directions -->
+              <h3 class="font-display font-extrabold text-lg text-slate-900 leading-snug mb-1">${biz.name}</h3>
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <p class="text-xs text-slate-500 truncate">${biz.address} • <span class="text-slate-400">${biz.openHours}</span></p>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+                  class="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-2 py-1 rounded-lg transition">
+                  <span>Xəritə</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+
+              <!-- Live Queue Status -->
+              <div class="mb-4">
+                ${queueBadgeHTML}
+              </div>
+
+              <!-- Services Preview -->
+              <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-100">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Populyar Xidmətlər</div>
+                ${servicesPreviewHTML}
+              </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div>
+                <span class="block text-[10px] font-semibold uppercase text-slate-400">Başlanğıc</span>
+                <span class="font-display font-extrabold text-base text-slate-900">${minPrice} ₼-dan</span>
+              </div>
+              <button onclick="openBookingModal('${biz.id}')"
+                class="px-4 py-2.5 rounded-xl bg-caspian-900 hover:bg-sky-600 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+                <span>Növbə Al / Vaxt Seç</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearFilters() {
+      state.selectedCity = 'all';
+      state.selectedCategory = 'all';
+      document.getElementById('search-input').value = '';
+      renderCityPills();
+      renderCategoryTabs();
+      renderCustomerBusinesses();
+    }
+
+    // =========================================================================
+    // BOOKING MODAL LOGIC
+    // =========================================================================
+    function openBookingModal(businessId) {
+      const biz = state.businesses.find(b => b.id === businessId);
+      if (!biz) return;
+
+      activeBookingModal.businessId = biz.id;
+      activeBookingModal.selectedServiceId = biz.services[0].id;
+      activeBookingModal.bookingType = 'live';
+      activeBookingModal.selectedTimeSlot = TIME_SLOTS[1];
+
+      const catObj = CATEGORIES.find(c => c.id === biz.category);
+      document.getElementById('modal-biz-category').textContent = catObj ? `${catObj.icon} ${catObj.label}` : '';
+      document.getElementById('modal-biz-name').textContent = biz.name;
+      document.getElementById('modal-biz-address').textContent = `📍 ${biz.city}, ${biz.address}`;
+
+      const stats = getBusinessQueueStats(biz.id);
+      const qBanner = document.getElementById('modal-queue-banner');
+      const qText = document.getElementById('modal-queue-text');
+      if (stats.waitingCount === 0) {
+        qBanner.className = 'p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between';
+        qText.className = 'text-xs sm:text-sm font-semibold text-emerald-900';
+        qText.textContent = 'Hazırda növbə boşdur! Dərhal xidmət ala bilərsiniz.';
+      } else {
+        qBanner.className = 'p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between';
+        qText.className = 'text-xs sm:text-sm font-semibold text-amber-900';
+        qText.textContent = `Hazırda növbədə ${stats.waitingCount} nəfər var (~${stats.totalWaitMinutes} dəq gözləmə)`;
+      }
+
+      renderModalServices(biz);
+      selectBookingType('live');
+      renderModalTimeSlots();
+
+      const modal = document.getElementById('booking-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBookingModal() {
+      const modal = document.getElementById('booking-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderModalServices(biz) {
+      const list = document.getElementById('modal-services-list');
+      list.innerHTML = biz.services.map(srv => {
+        const isSelected = srv.id === activeBookingModal.selectedServiceId;
+        if (isSelected) {
+          document.getElementById('modal-submit-price').textContent = `${srv.price} ₼`;
+        }
+        return `
+          <div onclick="selectModalService('${srv.id}')"
+            class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center justify-between gap-3 ${
+              isSelected
+                ? 'border-sky-500 bg-sky-50/70'
+                : 'border-slate-200 hover:border-slate-300 bg-white'
+            }">
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                isSelected ? 'border-sky-600' : 'border-slate-300'
+              }">
+                ${isSelected ? '<div class="w-2.5 h-2.5 rounded-full bg-sky-600"></div>' : ''}
+              </div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">${srv.name}</div>
+                <div class="text-xs text-slate-500">Müddət: ~${srv.duration} dəq</div>
+              </div>
+            </div>
+            <div class="font-display font-extrabold text-base text-caspian-950 shrink-0">${srv.price} ₼</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectModalService(serviceId) {
+      activeBookingModal.selectedServiceId = serviceId;
+      const biz = state.businesses.find(b => b.id === activeBookingModal.businessId);
+      if (biz) renderModalServices(biz);
+    }
+
+    function selectBookingType(type) {
+      activeBookingModal.bookingType = type;
+      const btnLive = document.getElementById('btn-book-type-live');
+      const btnSlot = document.getElementById('btn-book-type-slot');
+      const slotsWrapper = document.getElementById('time-slots-wrapper');
+
+      if (type === 'live') {
+        btnLive.className = 'p-3 rounded-2xl border-2 border-sky-500 bg-sky-50 text-left transition';
+        btnSlot.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 text-left transition';
+        slotsWrapper.classList.add('hidden');
+      } else {
+        btnSlot.className = 'p-3 rounded-2xl border-2 border-sky-500 bg-sky-50 text-left transition';
+        btnLive.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 text-left transition';
+        slotsWrapper.classList.remove('hidden');
+      }
+    }
+
+    function renderModalTimeSlots() {
+      const grid = document.getElementById('time-slots-grid');
+      grid.innerHTML = TIME_SLOTS.map(slot => {
+        const isSelected = activeBookingModal.selectedTimeSlot === slot;
+        return `
+          <button type="button" onclick="selectTimeSlot('${slot}')"
+            class="py-2 px-3 rounded-xl text-xs font-bold border transition ${
+              isSelected
+                ? 'bg-caspian-900 text-white border-caspian-900 shadow-sm'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-sky-400'
+            }">
+            ${slot}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectTimeSlot(slot) {
+      activeBookingModal.selectedTimeSlot = slot;
+      renderModalTimeSlots();
+    }
+
+    function generateTicketCode(prefix) {
+      const randNum = Math.floor(600 + Math.random() * 399);
+      return `#${prefix}-${randNum}`;
+    }
+
+    async function confirmCustomerBooking() {
+      if (!currentUser || !db) {
+        showToast('Bulud bağlantısı gözlənilir...', 'info');
+        return;
+      }
+
+      const biz = state.businesses.find(b => b.id === activeBookingModal.businessId);
+      if (!biz) return;
+
+      const srv = biz.services.find(s => s.id === activeBookingModal.selectedServiceId) || biz.services[0];
+      const nameInput = document.getElementById('booking-customer-name').value.trim() || 'Qonaq Müştəri';
+      const phoneInput = document.getElementById('booking-customer-phone').value.trim() || '+994 50 000 00 00';
+      const ticketCode = generateTicketCode(biz.prefix || 'AZ');
+
+      const newBooking = {
+        ticketCode,
+        businessId: biz.id,
+        customerName: nameInput,
+        phone: phoneInput,
+        serviceName: srv.name,
+        duration: srv.duration,
+        price: srv.price,
+        type: activeBookingModal.bookingType,
+        timeSlot: activeBookingModal.bookingType === 'slot' ? activeBookingModal.selectedTimeSlot : null,
+        status: 'waiting',
+        createdByUid: currentUser.uid,
+        createdAtMs: Date.now(),
+        createdAt: new Date().toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      try {
+        await addDoc(getBookingsCol(), newBooking);
+        state.ownerSelectedBusinessId = biz.id;
+        const ownerSelect = document.getElementById('owner-business-select');
+        if (ownerSelect) ownerSelect.value = biz.id;
+
+        closeBookingModal();
+        openMyTicketsModal();
+        showToast(`Biletiniz canlı növbəyə əlavə edildi: ${ticketCode}`, 'success');
+      } catch (err) {
+        console.error('Booking creation error:', err);
+        showToast('Bilet yaradılarkən xəta baş verdi.', 'info');
+      }
+    }
+
+    // =========================================================================
+    // DIGITAL TICKET MODAL & MY TICKETS UI (LIVE POSITION COUNTDOWN)
+    // =========================================================================
+    function getMyTickets() {
+      if (!currentUser) return [];
+      return state.bookings.filter(b => b.createdByUid === currentUser.uid);
+    }
+
+    function updateMyTicketsUI() {
+      const userTickets = getMyTickets().filter(b => b.status === 'waiting');
+      const badge = document.getElementById('my-ticket-badge');
+      badge.textContent = userTickets.length;
+
+      const banner = document.getElementById('active-ticket-banner');
+      if (userTickets.length > 0 && state.mode === 'customer') {
+        const latest = userTickets[userTickets.length - 1];
+        const biz = state.businesses.find(b => b.id === latest.businessId);
+        const posInfo = getQueuePositionForBooking(latest);
+
+        banner.classList.remove('hidden');
+        document.getElementById('banner-ticket-code').textContent = latest.ticketCode;
+        document.getElementById('banner-ticket-summary').textContent =
+          `${biz ? biz.name : ''} • ${latest.type === 'live' ? (posInfo.position === 1 ? 'İndi sizin sıranızdır!' : `Sırada ${posInfo.position}-ci (~${posInfo.waitMins} dəq)`) : `Saat ${latest.timeSlot}`}`;
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function getQueuePositionForBooking(booking) {
+      const bizWaiting = state.bookings.filter(b => b.businessId === booking.businessId && b.status === 'waiting');
+      const idx = bizWaiting.findIndex(b => b.id === booking.id);
+      if (idx === -1) return { position: 0, waitMins: 0 };
+      const ahead = bizWaiting.slice(0, idx);
+      const waitMins = ahead.reduce((sum, b) => sum + (b.duration || 25), 0);
+      return {
+        position: idx + 1,
+        waitMins
+      };
+    }
+
+    function openMyTicketsModal() {
+      state.isTicketModalOpen = true;
+      renderTicketModalContents();
+      const modal = document.getElementById('ticket-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function renderTicketModalContents() {
+      const userTickets = getMyTickets();
+      const container = document.getElementById('tickets-list-container');
+
+      if (userTickets.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl p-8 text-center shadow-xl">
+            <div class="text-4xl mb-3">🎟️</div>
+            <h3 class="font-display font-bold text-lg text-slate-900 mb-1">Aktiv biletiniz yoxdur</h3>
+            <p class="text-xs text-slate-500 mb-5">Hər hansı bir xidmət məkanını seçərək canlı növbəyə qoşula və ya saat rezerv edə bilərsiniz.</p>
+            <button onclick="closeTicketModal()" class="px-5 py-2.5 rounded-xl bg-caspian-900 text-white text-xs font-bold">Məkanlara Bax</button>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...userTickets].reverse();
+      container.innerHTML = sorted.map(bk => {
+        const biz = state.businesses.find(b => b.id === bk.businessId);
+        const posInfo = getQueuePositionForBooking(bk);
+        const isCompleted = bk.status === 'completed';
+
+        return `
+          <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+            <!-- Ticket Top -->
+            <div class="bg-gradient-to-r from-caspian-900 to-caspian-950 text-white p-6">
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-1 rounded-lg bg-white/15 text-sky-300 font-mono font-extrabold text-base tracking-wider">
+                  ${bk.ticketCode}
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                  isCompleted
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'
+                }">
+                  ${isCompleted ? '✓ Xidmət Tamamlanıb' : '● Canlı Növbə'}
+                </span>
+              </div>
+              <h4 class="font-display font-extrabold text-xl leading-snug">${biz ? biz.name : 'Xidmət Mərkəzi'}</h4>
+              <p class="text-xs text-slate-300 mt-0.5">📍 ${biz ? biz.city + ', ' + biz.address : ''}</p>
+            </div>
+
+            <!-- Ticket Details -->
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                <div>
+                  <span class="block text-[10px] font-bold uppercase text-slate-400">Canlı Sıranız</span>
+                  <span class="font-display font-extrabold text-base text-slate-900">
+                    ${isCompleted ? 'Tamamlandı' : (bk.type === 'live' ? (posInfo.position === 1 ? '1-ci (İndi!)' : `${posInfo.position}-ci növbə`) : `Saat ${bk.timeSlot}`)}
+                  </span>
+                </div>
+                <div>
+                  <span class="block text-[10px] font-bold uppercase text-slate-400">Təxmini Gözləmə</span>
+                  <span class="font-display font-extrabold text-base text-emerald-600">
+                    ${isCompleted ? '0 dəq' : (bk.type === 'live' ? (posInfo.waitMins === 0 ? 'Sizin sıranızdır!' : `~${posInfo.waitMins} dəq`) : 'Təyin olunmuş vaxt')}
+                  </span>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Xidmət:</span>
+                  <span class="font-bold text-slate-900 text-right">${bk.serviceName}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Müştəri:</span>
+                  <span class="font-semibold text-slate-800">${bk.customerName} (${bk.phone})</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Xidmət haqqı:</span>
+                  <span class="font-extrabold text-caspian-900 text-sm">${bk.price} ₼</span>
+                </div>
+              </div>
+
+              <!-- Perforated Divider & QR + Actions -->
+              <div class="ticket-divider pt-4 mt-4 space-y-3">
+                <div class="flex items-center gap-3">
+                  <svg class="w-14 h-14 text-slate-900 shrink-0" viewBox="0 0 36 36" fill="currentColor">
+                    <path d="M2 2h10v10H2V2zm2 2v6h6V4H4zm2 2h2v2H6V6zm18-4h10v10H24V2zm2 2v6h6V4h-6zm2 2h2v2h-2V6zM2 24h10v10H2V24zm2 2v6h6v-6H4zm2 2h2v2H6v-2zm10-26h2v4h-2V2zm4 2h2v4h-2V4zm-4 6h4v2h-4v-2zm-2 4h6v2h-6v-2zm8 0h2v6h-2v-6zm4 2h6v2h-6v-2zm-18 2h4v4h-4v-4zm6 2h4v2h-4v-2zm8 2h4v4h-4v-4zm6 0h4v6h-4v-6zm-14 4h2v6h-2v-6zm4 2h4v4h-4v-4zm6 4h4v2h-4v-2z"/>
+                  </svg>
+                  <p class="text-[11px] text-slate-500 leading-tight">
+                    Növbə sıranız canlı yenilənir. Məkana yaxınlaşdıqda bu elektron bileti təqdim edin.
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                  <button onclick="shareTicketViaWhatsApp('${bk.id}')"
+                    class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                    <span>💬 WhatsApp-a Göndər</span>
+                  </button>
+                  ${!isCompleted ? `
+                    <button onclick="cancelUserBooking('${bk.id}')" class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold shrink-0 transition">
+                      Ləğv et
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function shareTicketViaWhatsApp(bookingId) {
+      const bk = state.bookings.find(b => b.id === bookingId);
+      if (!bk) return;
+      const biz = state.businesses.find(b => b.id === bk.businessId);
+      const posInfo = getQueuePositionForBooking(bk);
+      const msg = `🎟️ *NövbəAl Elektron Bilet*\n\nBilet №: *${bk.ticketCode}*\nMəkan: *${biz ? biz.name : ''}* (${biz ? biz.city : ''})\nXidmət: ${bk.serviceName} (${bk.price} ₼)\nStatus: ${bk.type === 'live' ? `Sırada ${posInfo.position}-ci (~${posInfo.waitMins} dəq)` : `Saat ${bk.timeSlot}`}\n\nCanlı izlə: ${window.location.href}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    function closeTicketModal() {
+      state.isTicketModalOpen = false;
+      const modal = document.getElementById('ticket-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function cancelUserBooking(bookingId) {
+      if (!currentUser || !db) return;
+      try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId));
+        showToast('Növbə biletiniz ləğv edildi.', 'info');
+      } catch (err) {
+        console.error('Cancel booking error:', err);
+        showToast('Ləğv edilərkən xəta baş verdi.', 'info');
+      }
+    }
+
+    // =========================================================================
+    // BUSINESS OWNER DASHBOARD LOGIC (SAHİBKAR PANELİ)
+    // =========================================================================
+    function populateOwnerBusinessSelector() {
+      const select = document.getElementById('owner-business-select');
+      if (!select) return;
+      select.innerHTML = state.businesses.map(biz => `
+        <option value="${biz.id}" ${biz.id === state.ownerSelectedBusinessId ? 'selected' : ''}>
+          ${biz.name} (${biz.city})
+        </option>
+      `).join('');
+    }
+
+    function handleOwnerBusinessChange(bizId) {
+      state.ownerSelectedBusinessId = bizId;
+      renderOwnerDashboard();
+    }
+
+    function setOwnerFilter(filter) {
+      state.ownerStatusFilter = filter;
+      ['all', 'waiting', 'completed'].forEach(f => {
+        const btn = document.getElementById(`owner-filter-${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+        }
+      });
+      renderOwnerDashboard();
+    }
+
+    function renderOwnerDashboard() {
+      const biz = state.businesses.find(b => b.id === state.ownerSelectedBusinessId) || state.businesses[0];
+      if (!biz) return;
+
+      document.getElementById('owner-city-label').textContent = `${biz.city} • ${biz.address}`;
+      document.getElementById('owner-table-title').textContent = `${biz.name} — Canlı Növbə Siyahısı`;
+
+      const stats = getBusinessQueueStats(biz.id);
+      document.getElementById('kpi-waiting-count').textContent = stats.waitingCount;
+      document.getElementById('kpi-wait-minutes').textContent = stats.totalWaitMinutes;
+      document.getElementById('kpi-completed-count').textContent = stats.completedCount;
+      document.getElementById('kpi-earnings').textContent = `${stats.dailyEarnings} ₼`;
+
+      let bizBookings = state.bookings.filter(b => b.businessId === biz.id);
+      if (state.ownerStatusFilter !== 'all') {
+        bizBookings = bizBookings.filter(b => b.status === state.ownerStatusFilter);
+      }
+
+      // Waiting first (chronological), then completed
+      bizBookings.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'waiting' ? -1 : 1;
+        return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+      });
+
+      const tbody = document.getElementById('owner-bookings-tbody');
+      if (bizBookings.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-10 text-center text-slate-400 text-sm">
+              Bu filtr üzrə qeydiyyat tapılmadı.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = bizBookings.map(bk => {
+        const isWaiting = bk.status === 'waiting';
+        const isMyBooking = currentUser && bk.createdByUid === currentUser.uid;
+        return `
+          <tr class="hover:bg-slate-50/80 transition ${isWaiting ? '' : 'bg-slate-50/40 opacity-80'}">
+            <td class="py-3.5 px-5 font-mono font-bold text-xs text-caspian-900">
+              ${bk.ticketCode}
+              ${isMyBooking ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[10px]">Sizin</span>' : ''}
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 text-sm">${bk.customerName}</div>
+              <div class="text-xs text-slate-500">${bk.phone}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-medium text-slate-800 text-xs sm:text-sm">${bk.serviceName}</div>
+              <div class="text-[11px] text-slate-400">~${bk.duration} dəq</div>
+            </td>
+            <td class="py-3.5 px-4">
+              ${bk.type === 'live'
+                ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">Canlı Növbə</span>'
+                : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold">🕒 Saat ${bk.timeSlot}</span>`
+              }
+            </td>
+            <td class="py-3.5 px-4 font-display font-extrabold text-slate-900">
+              ${bk.price} ₼
+            </td>
+            <td class="py-3.5 px-4">
+              ${isWaiting
+                ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800"><span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>Gözləyir</span>'
+                : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">✓ Tamamlandı</span>'
+              }
+            </td>
+            <td class="py-3.5 px-5 text-right">
+              ${isWaiting ? `
+                <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
+                  <button onclick="openWhatsAppNotify('${bk.id}')" title="WhatsApp ilə növbə bildirişi göndər"
+                    class="px-2.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-xs font-bold transition">
+                    💬 WhatsApp
+                  </button>
+                  <button onclick="markBookingCompleted('${bk.id}')"
+                    class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
+                    Tamamlandı ✓
+                  </button>
+                  <button onclick="ownerCancelBooking('${bk.id}')" title="Ləğv et"
+                    class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 text-xs font-bold transition">
+                    ✕
+                  </button>
+                </div>
+              ` : `
+                <span class="text-xs text-slate-400 font-medium">Ödəniş qəbul edildi</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openWhatsAppNotify(bookingId) {
+      const bk = state.bookings.find(b => b.id === bookingId);
+      if (!bk) return;
+      const biz = state.businesses.find(b => b.id === bk.businessId);
+      const cleanPhone = formatPhoneForWhatsApp(bk.phone);
+      const msg = `Salam ${bk.customerName}, ${biz ? biz.name : 'xidmət mərkəzi'} obyektində növbəniz çatdı, buyura bilərsiniz!`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    async function markBookingCompleted(bookingId) {
+      if (!currentUser || !db) return;
+      const bk = state.bookings.find(b => b.id === bookingId);
+      if (!bk) return;
+
+      try {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
+          status: 'completed'
+        });
+        showToast(`${bk.ticketCode} tamamlandı! +${bk.price} ₼ günlük qazanca əlavə olundu.`, 'success');
+      } catch (err) {
+        console.error('Complete booking error:', err);
+        showToast('Status yenilənərkən xəta baş verdi.', 'info');
+      }
+    }
+
+    async function ownerCancelBooking(bookingId) {
+      if (!currentUser || !db) return;
+      try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId));
+        showToast('Müştəri növbədən silindi.', 'info');
+      } catch (err) {
+        console.error('Owner cancel error:', err);
+        showToast('Silinərkən xəta baş verdi.', 'info');
+      }
+    }
+
+    // Owner Walk-In Client Modal
+    function openWalkInModal() {
+      const biz = state.businesses.find(b => b.id === state.ownerSelectedBusinessId);
+      if (!biz) return;
+
+      document.getElementById('walkin-biz-subtitle').textContent = `${biz.name} (${biz.city})`;
+      document.getElementById('walkin-name').value = '';
+      const srvSelect = document.getElementById('walkin-service-select');
+      srvSelect.innerHTML = biz.services.map(s => `
+        <option value="${s.id}">${s.name} — ${s.price} ₼ (${s.duration} dəq)</option>
+      `).join('');
+
+      const modal = document.getElementById('walkin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeWalkInModal() {
+      const modal = document.getElementById('walkin-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function submitWalkInClient() {
+      if (!currentUser || !db) return;
+      const biz = state.businesses.find(b => b.id === state.ownerSelectedBusinessId);
+      if (!biz) return;
+
+      const name = document.getElementById('walkin-name').value.trim() || 'Yerində Müştəri';
+      const phone = document.getElementById('walkin-phone').value.trim() || '+994 50 000 00 00';
+      const srvId = document.getElementById('walkin-service-select').value;
+      const srv = biz.services.find(s => s.id === srvId) || biz.services[0];
+      const ticketCode = generateTicketCode(biz.prefix || 'AZ');
+
+      try {
+        await addDoc(getBookingsCol(), {
+          ticketCode,
+          businessId: biz.id,
+          customerName: name,
+          phone,
+          serviceName: srv.name,
+          duration: srv.duration,
+          price: srv.price,
+          type: 'live',
+          timeSlot: null,
+          status: 'waiting',
+          createdByUid: 'walkin-' + currentUser.uid,
+          createdAtMs: Date.now(),
+          createdAt: new Date().toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' })
+        });
+
+        closeWalkInModal();
+        showToast(`Yeni yerində müştəri əlavə edildi: ${ticketCode} (${name})`, 'success');
+      } catch (err) {
+        console.error('Walk-in error:', err);
+        showToast('Müştəri əlavə edilərkən xəta baş verdi.', 'info');
+      }
+    }
+
+    // Toast Helper
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgClass = type === 'success'
+        ? 'bg-caspian-950 text-white border-emerald-500/50'
+        : 'bg-slate-900 text-white border-sky-500/50';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transition-all duration-300 ${bgClass}`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : 'bg-sky-400'} shrink-0"></span>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // Expose all UI handlers globally for inline HTML attributes
+    window.switchMode = switchMode;
+    window.shareAppLink = shareAppLink;
+    window.openMyTicketsModal = openMyTicketsModal;
+    window.resetDemoData = resetDemoData;
+    window.renderCustomerBusinesses = renderCustomerBusinesses;
+    window.selectCity = selectCity;
+    window.selectCategory = selectCategory;
+    window.clearFilters = clearFilters;
+    window.openBookingModal = openBookingModal;
+    window.closeBookingModal = closeBookingModal;
+    window.selectModalService = selectModalService;
+    window.selectBookingType = selectBookingType;
+    window.selectTimeSlot = selectTimeSlot;
+    window.confirmCustomerBooking = confirmCustomerBooking;
+    window.closeTicketModal = closeTicketModal;
+    window.cancelUserBooking = cancelUserBooking;
+    window.shareTicketViaWhatsApp = shareTicketViaWhatsApp;
+    window.handleOwnerBusinessChange = handleOwnerBusinessChange;
+    window.setOwnerFilter = setOwnerFilter;
+    window.markBookingCompleted = markBookingCompleted;
+    window.ownerCancelBooking = ownerCancelBooking;
+    window.openWhatsAppNotify = openWhatsAppNotify;
+    window.openWalkInModal = openWalkInModal;
+    window.closeWalkInModal = closeWalkInModal;
+    window.submitWalkInClient = submitWalkInClient;
+
+    // Boot Real-Time App
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
